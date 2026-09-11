@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Motoquest — Outsmart the Crowd, Own the Journey</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#07080c;
+    --bg-alt:#0c0e15;
+    --surface: rgba(255,255,255,0.045);
+    --surface-hi: rgba(255,255,255,0.08);
+    --border: rgba(255,255,255,0.09);
+    --text:#F2F0EA;
+    --text-dim:#9C9A94;
+    --text-faint:#65635F;
+    --amber:#FF9145;
+    --amber-deep:#D9793D;
+    --cyan:#3ED9F2;
+    --violet:#7C6CFF;
+    --gold:#D9B26A;
+    --gold-hi:#F0D9A8;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{
+    font-family:'Space Grotesk',sans-serif;
+    letter-spacing:-0.01em;
+    margin:0;
+  }
+  p{margin:0;}
+  a{color:inherit;text-decoration:none;}
+  ::selection{background:var(--amber);color:#0a0a0a;}
+
+  /* ---------- background texture ---------- */
+  .grain{
+    position:fixed; inset:0; pointer-events:none; z-index:1;
+    opacity:0.035; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+  .cursor-glow{
+    position:fixed; width:420px; height:420px; border-radius:50%;
+    pointer-events:none; z-index:0; top:0; left:0;
+    background:radial-gradient(circle, rgba(124,108,255,0.10), rgba(62,217,242,0.05) 45%, transparent 70%);
+    transform:translate(-50%,-50%);
+    will-change:transform;
+  }
+
+  /* ---------- nav ---------- */
+  nav{
+    position:fixed; top:0; left:0; right:0; z-index:50;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 5vw;
+    background:linear-gradient(to bottom, rgba(7,8,12,0.85), transparent);
+    backdrop-filter:blur(6px);
+  }
+  .brand{display:flex; align-items:center; gap:10px; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:1.05rem;}
+  .brand-dot{width:9px;height:9px;border-radius:50%;background:var(--amber); box-shadow:0 0 12px var(--amber);}
+  .nav-badge{
+    font-size:0.72rem; color:var(--text-dim); border:1px solid var(--border);
+    padding:6px 12px; border-radius:100px; background:var(--surface);
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    position:relative; min-height:100svh; display:flex; align-items:center;
+    padding:0 5vw; z-index:2;
+  }
+  .hero-grid{
+    display:grid; grid-template-columns:1.05fr 0.95fr; align-items:center;
+    gap:40px; width:100%; max-width:1400px; margin:0 auto; padding-top:60px;
+  }
+  .kicker{
+    font-size:0.85rem; color:var(--cyan); font-weight:500;
+    display:flex; align-items:center; gap:10px; margin-bottom:22px;
+  }
+  .kicker-line{width:28px; height:1px; background:var(--cyan); opacity:0.6;}
+  .hero h1{
+    font-size:clamp(2.4rem, 5vw, 4.4rem);
+    line-height:1.05; font-weight:600;
+    max-width:11.5ch;
+  }
+  .hero h1 .glow-word{
+    background:linear-gradient(100deg, var(--amber) 10%, var(--gold-hi) 45%, var(--cyan) 90%);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .hero-sub{
+    margin-top:24px; font-size:1.08rem; color:var(--text-dim);
+    max-width:46ch; line-height:1.6;
+  }
+  .hero-cta{ display:flex; gap:14px; margin-top:38px; flex-wrap:wrap;}
+  .btn{
+    padding:14px 26px; border-radius:12px; font-size:0.95rem; font-weight:500;
+    cursor:pointer; border:1px solid transparent; transition:transform .25s ease, box-shadow .25s ease;
+  }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn:focus-visible{ outline:2px solid var(--cyan); outline-offset:3px; }
+  .btn-primary{
+    background:linear-gradient(100deg, var(--amber), var(--amber-deep));
+    color:#0a0603; box-shadow:0 8px 24px rgba(255,145,69,0.22);
+  }
+  .btn-primary:hover{ box-shadow:0 12px 30px rgba(255,145,69,0.32); }
+  .btn-ghost{
+    background:var(--surface); border-color:var(--border); color:var(--text);
+  }
+  .btn-ghost:hover{ background:var(--surface-hi); }
+
+  .hero-stats{ display:flex; gap:34px; margin-top:52px; }
+  .hero-stat b{ font-family:'Space Grotesk',sans-serif; font-size:1.5rem; font-weight:600; display:block;}
+  .hero-stat span{ font-size:0.8rem; color:var(--text-faint); }
+
+  .bulb-stage{
+    position:relative; height:520px; display:flex; align-items:center; justify-content:center;
+  }
+  .bulb-glow{
+    position:absolute; width:340px; height:340px; border-radius:50%;
+    background:radial-gradient(circle, rgba(124,108,255,0.35), rgba(62,217,242,0.14) 40%, transparent 72%);
+    filter:blur(6px);
+  }
+  #bulb-canvas{ position:relative; width:100%; height:100%; cursor:grab; touch-action:none; }
+  #bulb-canvas.dragging{ cursor:grabbing; }
+  .bulb-hint{
+    position:absolute; bottom:6px; left:50%; transform:translateX(-50%);
+    font-size:0.72rem; color:var(--text-faint); white-space:nowrap;
+  }
+
+  .scroll-cue{
+    position:absolute; bottom:30px; left:5vw; display:flex; align-items:center; gap:10px;
+    font-size:0.75rem; color:var(--text-faint);
+  }
+  .scroll-cue .line{ width:1px; height:26px; background:linear-gradient(var(--text-faint), transparent); animation:cueFlow 1.8s ease-in-out infinite; }
+  @keyframes cueFlow{ 0%,100%{opacity:.3;} 50%{opacity:1;} }
+
+  /* ---------- section shell ---------- */
+  section{ position:relative; z-index:2; padding:120px 5vw; }
+  .section-head{ max-width:640px; margin-bottom:64px; }
+  .eyebrow-plain{ font-size:0.85rem; color:var(--cyan); margin-bottom:14px; font-weight:500;}
+  .section-head h2{ font-size:clamp(1.9rem, 3.4vw, 2.7rem); font-weight:600; line-height:1.15; }
+  .section-head p{ margin-top:16px; color:var(--text-dim); font-size:1.02rem; line-height:1.6; max-width:56ch;}
+
+  /* ---------- tech physics playground ---------- */
+  .playground-wrap{
+    position:relative; height:640px; border-radius:24px;
+    background:
+      radial-gradient(circle at 20% 20%, rgba(124,108,255,0.08), transparent 45%),
+      radial-gradient(circle at 80% 70%, rgba(62,217,242,0.07), transparent 45%),
+      var(--bg-alt);
+    border:1px solid var(--border);
+    overflow:hidden;
+  }
+  .playground-hint{
+    position:absolute; top:20px; left:24px; font-size:0.78rem; color:var(--text-faint); z-index:3;
+    display:flex; align-items:center; gap:8px;
+  }
+  .playground-hint svg{ opacity:0.6; }
+  .glass-card{
+    position:absolute; width:288px; padding:26px 26px 24px;
+    border-radius:20px; border:1px solid var(--border);
+    background:linear-gradient(155deg, rgba(255,255,255,0.07), rgba(255,255,255,0.02));
+    backdrop-filter:blur(18px) saturate(140%);
+    box-shadow:0 20px 50px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+    cursor:grab; user-select:none; touch-action:none;
+    will-change:transform;
+    top:0; left:0;
+    transition:transform .34s ease, border-color .34s ease, box-shadow .34s ease, background .34s ease, filter .34s ease;
+    isolation:isolate; overflow:hidden;
+  }
+  .glass-card::before,
+  .reward-card::before{
+    content:"";
+    position:absolute;
+    inset:-1px;
+    border-radius:inherit;
+    background:radial-gradient(circle at var(--mx, 50%) var(--my, 50%), rgba(240,217,168,0.34), transparent 38%);
+    opacity:0;
+    transform:scale(1.05);
+    transition:opacity .3s ease, transform .3s ease;
+    pointer-events:none;
+    z-index:-1;
+  }
+  .glass-card::after,
+  .reward-card::after{
+    content:"";
+    position:absolute;
+    inset:0;
+    border-radius:inherit;
+    border:1px solid rgba(255,255,255,0.16);
+    opacity:0;
+    transition:opacity .3s ease;
+  }
+  .glass-card:active{ cursor:grabbing; }
+  .glass-card:hover{
+    transform:translateY(-8px) scale(1.02);
+    border-color:rgba(240,217,168,0.65);
+    box-shadow:0 28px 70px rgba(0,0,0,0.62), 0 0 24px rgba(240,217,168,0.12), inset 0 1px 0 rgba(255,255,255,0.08);
+    filter:saturate(122%);
+  }
+  .glass-card:hover::before,
+  .reward-card:hover::before{ opacity:1; transform:scale(1.02); }
+  .glass-card:hover::after,
+  .reward-card:hover::after{ opacity:1; }
+  .glass-card .tag{
+    display:inline-flex; align-items:center; gap:7px; font-size:0.72rem; font-weight:500;
+    padding:5px 10px; border-radius:100px; margin-bottom:16px;
+  }
+  .glass-card .icon-wrap{
+    width:46px; height:46px; border-radius:13px; display:flex; align-items:center; justify-content:center;
+    margin-bottom:16px;
+  }
+  .glass-card h3{ font-size:1.18rem; font-weight:600; margin-bottom:10px; }
+  .glass-card p{ font-size:0.9rem; color:var(--text-dim); line-height:1.55; }
+  .card-cv .icon-wrap{ background:rgba(62,217,242,0.13); }
+  .card-cv .tag{ background:rgba(62,217,242,0.13); color:var(--cyan); }
+  .card-sd .icon-wrap{ background:rgba(255,145,69,0.13); }
+  .card-sd .tag{ background:rgba(255,145,69,0.13); color:var(--amber); }
+  .card-dc .icon-wrap{ background:rgba(124,108,255,0.15); }
+  .card-dc .tag{ background:rgba(124,108,255,0.15); color:var(--violet); }
+
+  /* ---------- gamification ---------- */
+  .path-rail{ position:relative; padding:60px 0 40px; }
+  .path-svg{ position:absolute; top:56px; left:0; width:100%; height:60px; }
+  .path-nodes{ display:flex; justify-content:space-between; position:relative; gap:8px; }
+  .node{
+    display:flex; flex-direction:column; align-items:center; text-align:center; width:16%;
+    animation:floatY 5.5s ease-in-out infinite;
+  }
+  .node:nth-child(2){ animation-delay:-0.9s; }
+  .node:nth-child(3){ animation-delay:-1.8s; }
+  .node:nth-child(4){ animation-delay:-2.7s; }
+  .node:nth-child(5){ animation-delay:-3.6s; }
+  .node:nth-child(6){ animation-delay:-4.5s; }
+  @keyframes floatY{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-10px);} }
+  .node-dot{
+    width:54px; height:54px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+    background:linear-gradient(155deg, rgba(217,178,106,0.22), rgba(217,178,106,0.04));
+    border:1px solid rgba(217,178,106,0.35);
+    box-shadow:0 0 0 rgba(217,178,106,0);
+    margin-bottom:14px; font-size:1.3rem;
+    transition:box-shadow .4s ease, transform .4s ease;
+  }
+  .node.clink .node-dot{
+    box-shadow:0 0 28px rgba(217,178,106,0.55);
+    transform:scale(1.12);
+  }
+  .node b{ font-size:0.86rem; font-weight:600; }
+  .node span{ font-size:0.72rem; color:var(--text-faint); margin-top:3px; }
+
+  .reward-row{ display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:70px; }
+  .reward-card{
+    position:relative; padding:26px; border-radius:16px; border:1px solid var(--border); background:var(--surface);
+    transition:transform .34s ease, border-color .34s ease, box-shadow .34s ease, background .34s ease;
+    overflow:hidden; isolation:isolate;
+  }
+  .reward-card:hover{
+    transform:translateY(-8px);
+    border-color:rgba(240,217,168,0.65);
+    background:rgba(255,255,255,0.075);
+    box-shadow:0 16px 30px rgba(0,0,0,0.45), 0 0 20px rgba(240,217,168,0.08);
+  }
+  .reward-card .r-icon{
+    width:38px; height:38px; border-radius:10px; background:rgba(217,178,106,0.14);
+    display:flex; align-items:center; justify-content:center; margin-bottom:14px;
+  }
+  .reward-card h3{ font-size:1.02rem; font-weight:600; margin-bottom:8px; }
+  .reward-card p{ font-size:0.87rem; color:var(--text-dim); line-height:1.55; }
+
+  /* ---------- impact: deliberately flat + structured ---------- */
+  .impact-section{ background:var(--bg-alt); border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
+  .impact-grid{ display:grid; grid-template-columns:repeat(3,1fr); max-width:1200px; margin:0 auto; }
+  .impact-col{ padding:0 40px; border-left:1px solid var(--border); }
+  .impact-col:first-child{ border-left:none; padding-left:0; }
+  .impact-col:last-child{ padding-right:0; }
+  .impact-col .bar{ width:34px; height:3px; margin-bottom:22px; }
+  .bar-amber{ background:var(--amber); }
+  .bar-cyan{ background:var(--cyan); }
+  .bar-violet{ background:var(--violet); }
+  .impact-col h3{ font-size:1.24rem; font-weight:600; margin-bottom:20px; }
+  .impact-col ul{ list-style:none; margin:0; padding:0; }
+  .impact-col li{
+    font-size:0.92rem; color:var(--text-dim); line-height:1.5;
+    padding:14px 0; border-top:1px solid var(--border);
+  }
+  .impact-col li:first-of-type{ border-top:none; padding-top:0; }
+
+  /* ---------- footer ---------- */
+  footer{
+    padding:90px 5vw 50px; text-align:center; position:relative; z-index:2;
+  }
+  .footer-badge{
+    display:inline-flex; align-items:center; gap:8px; font-size:0.78rem; color:var(--text-dim);
+    border:1px solid var(--border); padding:7px 14px; border-radius:100px; margin-bottom:28px;
+  }
+  footer h2{ font-size:clamp(1.8rem,3.4vw,2.6rem); font-weight:600; max-width:16ch; margin:0 auto; line-height:1.15;}
+  footer .foot-sub{ color:var(--text-dim); margin-top:16px; font-size:1rem; }
+  footer .hero-cta{ justify-content:center; margin-top:36px; }
+  .foot-meta{ margin-top:90px; display:flex; justify-content:space-between; align-items:center;
+    border-top:1px solid var(--border); padding-top:26px; font-size:0.8rem; color:var(--text-faint); flex-wrap:wrap; gap:12px;}
+
+  @media (max-width: 900px){
+    .hero-grid{ grid-template-columns:1fr; }
+    .bulb-stage{ height:340px; order:-1; }
+    .hero h1{ max-width:none; }
+    .hero-stats{ gap:24px; flex-wrap:wrap; }
+    .playground-wrap{ height:auto; padding:24px; }
+    .glass-card{ position:relative !important; transform:none !important; width:100%; margin-bottom:16px; cursor:default; }
+    .path-nodes{ flex-wrap:wrap; row-gap:28px; }
+    .node{ width:30%; }
+    .path-svg{ display:none; }
+    .reward-row{ grid-template-columns:1fr; }
+    .impact-grid{ grid-template-columns:1fr; }
+    .impact-col{ border-left:none; border-top:1px solid var(--border); padding:36px 0 0; margin-top:36px; }
+    .impact-col:first-child{ border-top:none; margin-top:0; padding-top:0; }
+  }
+  @media (prefers-reduced-motion: reduce){
+    .node{ animation:none; }
+    .scroll-cue .line{ animation:none; }
+    html{ scroll-behavior:auto; }
+  }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor-glow" id="cursorGlow"></div>
+
+<nav>
+  <div class="brand"><span class="brand-dot"></span>Motoquest</div>
+  <div class="nav-badge">SIH 2026 · PS26204</div>
+</nav>
+
+<!-- HERO -->
+<header class="hero" id="top">
+  <div class="hero-grid">
+    <div>
+      <div class="kicker"><span class="kicker-line"></span>Smart India Hackathon 2026</div>
+      <h1>Outsmart the crowd,<br><span class="glow-word">own the journey.</span></h1>
+      <p class="hero-sub">Motoquest is an intelligent travel portal that reads real-time human movement — crowd density, live routes, riders nearby — and turns it into a calmer, smarter way to explore.</p>
+      <div class="hero-cta">
+        <a href="#tech" class="btn btn-primary">See how it works</a>
+        <a href="#gamify" class="btn btn-ghost">Explore the rewards</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat"><b>Live</b><span>crowd density feed</span></div>
+        <div class="hero-stat"><b>GPS</b><span>verified check-ins</span></div>
+        <div class="hero-stat"><b>6</b><span>growth stages, Seed to City</span></div>
+      </div>
+    </div>
+    <div class="bulb-stage">
+      <div class="bulb-glow"></div>
+      <div id="bulb-canvas"></div>
+      <div class="bulb-hint">drag to spin</div>
+    </div>
+  </div>
+  <div class="scroll-cue"><div class="line"></div>scroll</div>
+</header>
+
+<!-- TECH -->
+<section id="tech">
+  <div class="section-head">
+    <div class="eyebrow-plain">The tech underneath</div>
+    <h2>Three systems, working in the background.</h2>
+    <p>Drag them apart, toss them around — this is roughly how the pieces sit under the hood too: independent, but always aware of each other.</p>
+  </div>
+
+  <div class="playground-wrap" id="playground">
+    <div class="playground-hint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+      drag a card, or just move your cursor near them
+    </div>
+
+    <div class="glass-card card-cv" id="card1">
+      <div class="tag">Computer vision</div>
+      <div class="icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3ED9F2" stroke-width="1.7"><circle cx="12" cy="12" r="3.2"/><path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12z"/></svg>
+      </div>
+      <h3>Reads the crowd before you arrive</h3>
+      <p>Live CCTV and GPS signals are fused to estimate crowd density at trails, viewpoints and rest stops, then surfaced as low-crowd time windows you can actually plan around.</p>
+    </div>
+
+    <div class="glass-card card-sd" id="card2">
+      <div class="tag">Smart discovery</div>
+      <div class="icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FF9145" stroke-width="1.7"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <h3>Suggestions built for your ride</h3>
+      <p>Destinations are matched to your vehicle type and range, and the portal surfaces lesser-known trails that fit — not just the same five spots everyone already knows.</p>
+    </div>
+
+    <div class="glass-card card-dc" id="card3">
+      <div class="tag">Driver clubs</div>
+      <div class="icon-wrap">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#7C6CFF" stroke-width="1.7"><circle cx="8" cy="9" r="3"/><circle cx="17" cy="9" r="3"/><path d="M2 20c0-3.3 2.7-6 6-6s6 2.7 6 6M11 20c0-2.5 1.9-4.6 4.3-4.9C18.4 14.7 21 17 21 20"/></svg>
+      </div>
+      <h3>Find riders headed your way</h3>
+      <p>GPS-based clubs group riders travelling similar routes, so a solo trip can become a convoy — or a convoy can find one more rider to fill the gap.</p>
+    </div>
+  </div>
+</section>
+
+<!-- GAMIFICATION -->
+<section id="gamify">
+  <div class="section-head">
+    <div class="eyebrow-plain">The growth ecosystem</div>
+    <h2>Every trip grows your world, from Seed to Tourism City.</h2>
+    <p>XP, badges and leaderboard standing aren't just numbers — they visibly build a small world that starts as a seed and ends as a city on the map.</p>
+  </div>
+
+  <div class="path-rail">
+    <svg class="path-svg" viewBox="0 0 1200 60" preserveAspectRatio="none">
+      <path d="M20,30 C 220,10 380,50 600,30 S 980,10 1180,30" fill="none" stroke="url(#pathGrad)" stroke-width="1.5" stroke-dasharray="2 8" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="pathGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#3ED9F2" stop-opacity="0.5"/>
+          <stop offset="50%" stop-color="#7C6CFF" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="#D9B26A" stop-opacity="0.8"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="path-nodes" id="pathNodes">
+      <div class="node"><div class="node-dot">🌱</div><b>Seed</b><span>first trip logged</span></div>
+      <div class="node"><div class="node-dot">🌿</div><b>Sprout</b><span>5 rides, 3 badges</span></div>
+      <div class="node"><div class="node-dot">🏍️</div><b>Rider</b><span>club joined</span></div>
+      <div class="node"><div class="node-dot">🧭</div><b>Explorer</b><span>hidden trail found</span></div>
+      <div class="node"><div class="node-dot">🗺️</div><b>Pathfinder</b><span>top leaderboard tier</span></div>
+      <div class="node"><div class="node-dot">🏙️</div><b>Tourism City</b><span>world fully built</span></div>
+    </div>
+  </div>
+
+  <div class="reward-row">
+    <div class="reward-card">
+      <div class="r-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D9B26A" stroke-width="1.7"><path d="M20 12V8H6a2 2 0 1 1 0-4h12v4"/><path d="M4 6v12a2 2 0 0 0 2 2h14v-4"/><path d="M18 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></div>
+      <h3>Discounts on the road</h3>
+      <p>XP unlocks fuel and gear discounts at partner stops along your route, redeemable straight from the app.</p>
+    </div>
+    <div class="reward-card">
+      <div class="r-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D9B26A" stroke-width="1.7"><path d="M3 21V9l9-6 9 6v12"/><path d="M9 21v-6h6v6"/></svg></div>
+      <h3>Hotel offers</h3>
+      <p>Higher tiers surface better stay rates at destinations you're actively exploring, not generic city-wide deals.</p>
+    </div>
+    <div class="reward-card">
+      <div class="r-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D9B26A" stroke-width="1.7"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M16 3v8M8 3v8"/></svg></div>
+      <h3>Local coupons</h3>
+      <p>Every reward is verified by GPS proximity and a QR check-in, so credit only goes to trips that actually happened.</p>
+    </div>
+  </div>
+</section>
+
+<!-- IMPACT -->
+<section class="impact-section">
+  <div class="section-head">
+    <div class="eyebrow-plain">The impact</div>
+    <h2>What it changes for the people around the road.</h2>
+    <p>Under the floating tech is a simple, structural shift: movement gets distributed instead of concentrated.</p>
+  </div>
+  <div class="impact-grid">
+    <div class="impact-col">
+      <div class="bar bar-amber"></div>
+      <h3>For drivers</h3>
+      <ul>
+        <li>Real crowd data replaces guesswork on when and where to go</li>
+        <li>Vehicle-matched routes cut wasted detours and dead ends</li>
+        <li>Clubs turn solo rides into company when you want it</li>
+      </ul>
+    </div>
+    <div class="impact-col">
+      <div class="bar bar-cyan"></div>
+      <h3>For local businesses</h3>
+      <ul>
+        <li>Off-peak visibility spreads footfall beyond the usual rush hours</li>
+        <li>QR-verified coupons bring in traffic that's easy to measure</li>
+        <li>Hidden-trail discovery routes riders past overlooked stops</li>
+      </ul>
+    </div>
+    <div class="impact-col">
+      <div class="bar bar-violet"></div>
+      <h3>For destinations</h3>
+      <ul>
+        <li>Density-aware suggestions ease pressure on overcrowded sites</li>
+        <li>Better-timed arrivals mean smoother parking and access</li>
+        <li>Lesser-known locations get sustainable, spread-out attention</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer id="join">
+  <div class="footer-badge">Problem Statement SIH26204</div>
+  <h2>Built for the ride, not just the destination.</h2>
+  <p class="foot-sub">Motoquest — Smart India Hackathon 2026.</p>
+  <div class="hero-cta">
+    <a href="#top" class="btn btn-primary">Back to the top</a>
+    <a href="#tech" class="btn btn-ghost">Revisit the tech</a>
+  </div>
+  <div class="foot-meta">
+    <span>Motoquest, 2026</span>
+    <span>Computer vision · Smart discovery · Driver clubs</span>
+  </div>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var isSmall = window.innerWidth < 900;
+
+  /* ---------- panel hover spotlight ---------- */
+  var panels = Array.from(document.querySelectorAll('.glass-card, .reward-card'));
+  panels.forEach(function(panel){
+    panel.addEventListener('mousemove', function(e){
+      var rect = panel.getBoundingClientRect();
+      var x = e.clientX - rect.left;
+      var y = e.clientY - rect.top;
+      panel.style.setProperty('--mx', Math.max(0, Math.min(rect.width, x)) + 'px');
+      panel.style.setProperty('--my', Math.max(0, Math.min(rect.height, y)) + 'px');
+    });
+    panel.addEventListener('mouseleave', function(){
+      panel.style.setProperty('--mx', '50%');
+      panel.style.setProperty('--my', '50%');
+    });
+  });
+
+  /* ---------- cursor glow ---------- */
+  var glow = document.getElementById('cursorGlow');
+  var gx=window.innerWidth/2, gy=window.innerHeight/2, cgx=gx, cgy=gy;
+  window.addEventListener('mousemove', function(e){ gx=e.clientX; gy=e.clientY; });
+  function glowLoop(){
+    cgx += (gx-cgx)*0.08; cgy += (gy-cgy)*0.08;
+    glow.style.transform = 'translate('+cgx+'px,'+cgy+'px)';
+    requestAnimationFrame(glowLoop);
+  }
+  if(!reduceMotion) requestAnimationFrame(glowLoop);
+
+  /* ---------- HERO: three.js brain-bulb ---------- */
+  (function(){
+    var container = document.getElementById('bulb-canvas');
+    if(!container || typeof THREE === 'undefined') return;
+
+    var w = container.clientWidth, h = container.clientHeight;
+    var scene = new THREE.Scene();
+    var camera = new THREE.PerspectiveCamera(45, w/h, 0.1, 100);
+    camera.position.z = 5;
+    var renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setSize(w,h);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+    container.appendChild(renderer.domElement);
+
+    var group = new THREE.Group();
+    scene.add(group);
+
+    var outer = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.5, 1),
+      new THREE.MeshBasicMaterial({ color: 0x7c6cff, wireframe:true, transparent:true, opacity:0.55 })
+    );
+    group.add(outer);
+
+    var inner = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.95, 2),
+      new THREE.MeshBasicMaterial({ color: 0x3ed9f2, wireframe:true, transparent:true, opacity:0.4 })
+    );
+    group.add(inner);
+
+    var core = new THREE.Mesh(
+      new THREE.SphereGeometry(0.55, 24, 24),
+      new THREE.MeshBasicMaterial({ color: 0xff9145, transparent:true, opacity:0.18 })
+    );
+    group.add(core);
+
+    // sparse point cluster ("bulb filament")
+    var pGeo = new THREE.BufferGeometry();
+    var count = 60, positions = new Float32Array(count*3);
+    for(var i=0;i<count;i++){
+      var r = 0.55 + Math.random()*0.2;
+      var theta = Math.random()*Math.PI*2, phi = Math.acos(2*Math.random()-1);
+      positions[i*3]   = r*Math.sin(phi)*Math.cos(theta);
+      positions[i*3+1] = r*Math.sin(phi)*Math.sin(theta);
+      positions[i*3+2] = r*Math.cos(phi);
+    }
+    pGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+    var points = new THREE.Points(pGeo, new THREE.PointsMaterial({ color:0xf0d9a8, size:0.045, transparent:true, opacity:0.85 }));
+    group.add(points);
+
+    var vel = { x:0, y:0 };
+    var target = { x:0, y:0 };
+    var dragging = false, lastX=0, lastY=0;
+
+    function onDown(e){
+      dragging = true;
+      container.classList.add('dragging');
+      var p = e.touches ? e.touches[0] : e;
+      lastX = p.clientX; lastY = p.clientY;
+    }
+    function onMove(e){
+      var p = e.touches ? e.touches[0] : e;
+      if(dragging){
+        var dx = p.clientX - lastX, dy = p.clientY - lastY;
+        vel.y += dx*0.0006;
+        vel.x += dy*0.0006;
+        lastX = p.clientX; lastY = p.clientY;
+      } else {
+        var rect = container.getBoundingClientRect();
+        target.x = ((p.clientY - rect.top)/rect.height - 0.5) * 0.6;
+        target.y = ((p.clientX - rect.left)/rect.width - 0.5) * 0.6;
+      }
+    }
+    function onUp(){ dragging = false; container.classList.remove('dragging'); }
+
+    container.addEventListener('mousedown', onDown);
+    container.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+    container.addEventListener('touchstart', onDown, {passive:true});
+    container.addEventListener('touchmove', onMove, {passive:true});
+    window.addEventListener('touchend', onUp);
+
+    function animate(){
+      requestAnimationFrame(animate);
+      if(!dragging){
+        vel.y += 0.0009; // gentle autorotation
+      }
+      group.rotation.y += vel.y + target.y*0.01;
+      group.rotation.x += vel.x + target.x*0.01;
+      vel.x *= 0.94; vel.y *= 0.94;
+      outer.rotation.z += 0.0006;
+      inner.rotation.z -= 0.0009;
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.addEventListener('resize', function(){
+      var w2 = container.clientWidth, h2 = container.clientHeight;
+      camera.aspect = w2/h2; camera.updateProjectionMatrix();
+      renderer.setSize(w2,h2);
+    });
+  })();
+
+  /* ---------- TECH SECTION: matter.js floating cards ---------- */
+  (function(){
+    if(typeof Matter === 'undefined') return;
+    var wrap = document.getElementById('playground');
+    if(!wrap) return;
+    if(isSmall) return; // mobile: static stacked cards via CSS, skip physics engine for perf
+
+    var Engine = Matter.Engine, World = Matter.World, Bodies = Matter.Bodies,
+        Mouse = Matter.Mouse, MouseConstraint = Matter.MouseConstraint, Body = Matter.Body;
+
+    var engine = Engine.create();
+    engine.gravity.y = 0;
+    engine.gravity.x = 0;
+
+    var W = wrap.clientWidth, H = wrap.clientHeight;
+    var cardEls = [Array.from(document.querySelectorAll('.glass-card'))][0];
+    var bodies = [];
+
+    cardEls.forEach(function(el, i){
+      var cw = el.offsetWidth || 288, ch = el.offsetHeight || 220;
+      var x = W*0.22 + i*(W*0.28) + (Math.random()*30-15);
+      var y = H*0.35 + (i%2===0 ? -20 : 40) + Math.random()*40;
+      var body = Bodies.rectangle(x, y, cw, ch, {
+        chamfer:{radius:20},
+        frictionAir:0.045,
+        restitution:0.5,
+        angle:(Math.random()-0.5)*0.15
+      });
+      Body.setAngularVelocity(body, (Math.random()-0.5)*0.01);
+      bodies.push({ el:el, body:body, w:cw, h:ch, phase:Math.random()*Math.PI*2 });
+      World.add(engine.world, body);
+    });
+
+    // invisible bounds
+    var wallOpts = { isStatic:true, restitution:0.6 };
+    World.add(engine.world, [
+      Bodies.rectangle(W/2, -30, W+200, 60, wallOpts),
+      Bodies.rectangle(W/2, H+30, W+200, 60, wallOpts),
+      Bodies.rectangle(-30, H/2, 60, H+200, wallOpts),
+      Bodies.rectangle(W+30, H/2, 60, H+200, wallOpts)
+    ]);
+
+    var mouse = Mouse.create(wrap);
+    mouse.pixelRatio = window.devicePixelRatio || 1;
+    var mouseConstraint = MouseConstraint.create(engine, {
+      mouse: mouse,
+      constraint: { stiffness:0.15, damping:0.15, render:{visible:false} }
+    });
+    World.add(engine.world, mouseConstraint);
+
+    // prevent page scroll hijack from Matter's mouse wheel listener
+    mouse.element.removeEventListener('mousewheel', mouse.mousewheel);
+    mouse.element.removeEventListener('DOMMouseScroll', mouse.mousewheel);
+
+    var cursorPos = null;
+    wrap.addEventListener('mousemove', function(e){
+      var r = wrap.getBoundingClientRect();
+      cursorPos = { x:e.clientX-r.left, y:e.clientY-r.top };
+    });
+    wrap.addEventListener('mouseleave', function(){ cursorPos = null; });
+
+    var t = 0;
+    (function loop(){
+      requestAnimationFrame(loop);
+      t += 0.016;
+
+      bodies.forEach(function(b){
+        var isDragged = mouseConstraint.body === b.body;
+        if(!isDragged){
+          // gentle ambient bob (antigravity float)
+          Body.applyForce(b.body, b.body.position, {
+            x: Math.sin(t*0.5 + b.phase)*0.000018,
+            y: Math.cos(t*0.6 + b.phase)*0.000018
+          });
+          // cursor repel field
+          if(cursorPos){
+            var dx = b.body.position.x - cursorPos.x;
+            var dy = b.body.position.y - cursorPos.y;
+            var dist = Math.sqrt(dx*dx+dy*dy);
+            if(dist < 190 && dist > 1){
+              var force = (190-dist)/190 * 0.0009;
+              Body.applyForce(b.body, b.body.position, {
+                x:(dx/dist)*force, y:(dy/dist)*force
+              });
+            }
+          }
+        }
+        // sync DOM
+        var x = b.body.position.x - b.w/2;
+        var y = b.body.position.y - b.h/2;
+        b.el.style.transform = 'translate3d('+x+'px,'+y+'px,0) rotate('+b.body.angle+'rad)';
+      });
+
+      Engine.update(engine, 16.666);
+    })();
+
+    window.addEventListener('resize', function(){
+      W = wrap.clientWidth; H = wrap.clientHeight;
+    });
+  })();
+
+  /* ---------- gamification: clink on scroll ---------- */
+  (function(){
+    var nodes = document.querySelectorAll('.node');
+    if(!nodes.length || typeof IntersectionObserver === 'undefined') return;
+    var obs = new IntersectionObserver(function(entries){
+      entries.forEach(function(entry, idx){
+        if(entry.isIntersecting){
+          var el = entry.target;
+          var i = Array.from(nodes).indexOf(el);
+          setTimeout(function(){
+            el.classList.add('clink');
+            setTimeout(function(){ el.classList.remove('clink'); }, 700);
+          }, i*90);
+          obs.unobserve(el);
+        }
+      });
+    }, { threshold:0.5 });
+    nodes.forEach(function(n){ obs.observe(n); });
+  })();
+})();
+</script>
+</body>
+</html>
